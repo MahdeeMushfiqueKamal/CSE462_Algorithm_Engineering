@@ -1,0 +1,100 @@
+\documentclass{beamer}
+\usepackage[sorting=none]{biblatex}
+\usepackage[ruled]{algorithm2e}
+
+\usetheme{Boadilla} 
+\usecolortheme{beaver}    % RED ASH WHITE
+% \useinnertheme{rectangles}
+\useinnertheme{circles}
+\usefonttheme{structurebold}
+
+\addbibresource{sample.bib} %Imports bibliography file
+
+\title[The Multicut Problem]{The Multicut Problem}
+\author[1805032]{
+    Mahdee Mushfique Kamal, 
+    \texttt{1805032} 
+}
+\institute[CSE,BUET]{
+    Department of Computer Science and Engineering, \\
+    Bangladesh University of Engineering and Technology,
+    Dhaka, 1000. 
+}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+    \maketitle
+\end{frame}
+
+\setbeamercovered{transparent}
+
+% slide 1 - introduction
+\begin{frame}{Introduction}
+\begin{itemize}
+    \item Given a graph \(G = (V, E)\) with nonnegative edge costs \(c_e \geq 0\), the Multicut Problem considers a set of source-sink pairs \((s_1, t_1), ..., (s_k, t_k)\). \newline
+
+    \item The goal is to find a minimum-cost set of edges \(F\) such that removing them disconnects all pairs in the graph. \newline
+
+    \item That is, for every $ i, 1 \leq i \leq k $, there is no path connecting \(s_i\) and \(t_i\) in (V, E - F).
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Essential Terminologies}
+\begin{itemize}
+    \item \textit{Linear programming relaxation} is a technique used in optimization to simplify a discrete, combinatorial, or integer programming problem by relaxing some of its constraints or integrality requirements. \newline
+
+    \item We solve the linear program to obtain a fractional solution, then round it to an integer solution via some process. \newline
+
+    \pause
+
+    \item A \textit{separation oracle} takes as input a supposedly feasible solution $x$ to the linear program, and either verifies that $x$ is indeed a feasible solution to the linear program or, if it is infeasible, produces a constraint that is violated by $x$. \footnote{More details on section 4.3} 
+
+\end{itemize}  
+\end{frame}
+
+ 
+
+
+
+\begin{frame}{Integer Programming Formulation}
+
+Given \(G = (V, E)\) with nonnegative edges  We need to minimize, 
+
+\[
+\sum_{e \in E} c_e x_e
+\]
+
+Subject to:
+
+\[
+\sum_{e \in P} x_e \geq 1, \quad \forall P \in P_i, \quad 1 \leq i \leq k \quad \text{ and } \quad x_e \in \{0, 1\},  \forall e \in E
+\] \newline
+
+\begin{itemize}
+    \item Here, \(x_e\) is a variable indicating whether edge \(e\) is selected or not.
+
+    \item And, $P_i$ is the set of all paths $P$ joining $s_i$ and $t_i$. Which means, we can't remove the whole path (at least one edge of the path is selected) 
+
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Linear Programming Relaxation}
+    \begin{itemize}
+        \item Replace the constraints $ x_e \in \{0, 1\} $ with $ x_e \geq 0 $ \newline
+
+        \item We can solve the linear program in polynomial time using the \textbf{ellipsoid method} \newline
+
+        \item For the separation oracle, for each i, $ 1 \geq i \geq k $, the shortest path between $ s_i$ and $t_i$ is computed. We return "violation constraint" is shortest path $ P $ is less than 1. 
+
+        \item Since we have $ \sum_{e \in P} x_e < 1 $ for $ P \in P_i$ 
+    \end{itemize}
+    
+\end{frame}
+
+
+\end{document}
