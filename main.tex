@@ -1,6 +1,9 @@
 \documentclass{beamer}
 \usepackage[sorting=none]{biblatex}
 \usepackage[ruled]{algorithm2e}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
 
 \usetheme{Boadilla} 
 \usecolortheme{beaver}    % RED ASH WHITE
@@ -24,6 +27,7 @@
 
 \begin{document}
 
+
 \begin{frame}
     \maketitle
 \end{frame}
@@ -41,7 +45,18 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Introduction}
+\begin{itemize}
+    \item The problem is slightly different from k-multiway cut problem. \newline
 
+    \item For k=1, it is a s-t flow problem which can be solved in polynomial time. \newline
+
+    \item Minimum multicut problem is NP-hard and MAX-SNP-hard even for k = 3. \cite{dahlhaus1994complexity}
+
+    
+\end{itemize}
+
+\end{frame}
 
 \begin{frame}{Essential Terminologies}
 \begin{itemize}
@@ -87,13 +102,185 @@ Subject to:
     \begin{itemize}
         \item Replace the constraints $ x_e \in \{0, 1\} $ with $ x_e \geq 0 $ \newline
 
-        \item We can solve the linear program in polynomial time using the \textbf{ellipsoid method} \newline
+        \item We can solve the linear program in polynomial time using the \textbf{ellipsoid method} \footnote{More details on section 4.3}  \newline
 
-        \item For the separation oracle, for each i, $ 1 \geq i \geq k $, the shortest path between $ s_i$ and $t_i$ is computed. We return "violation constraint" is shortest path $ P $ is less than 1. 
+        \item For the separation oracle, for each i, $ 1 \geq i \geq k $, the shortest path between $ s_i$ and $t_i$ is computed. We return "violation constraint" if shortest path $ P $ is less than 1. 
 
-        \item Since we have $ \sum_{e \in P} x_e < 1 $ for $ P \in P_i$ 
+        % \item Since we have $ \sum_{e \in P} x_e < 1 $ for $ P \in P_i$ 
     \end{itemize}
     
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+
+The solution is built by taking balls around the vertex $s_i$ for each $i$. The notations for the algorithm: 
+
+\begin{itemize}
+  \item $ x_e $ denotes the length of the edge $e$. 
+  \item $d_x(u,v)$ denotes the length of the shortest path from $u$ to $v$ using $x_e$ as edge lengths. $ d_x(s_i, t_i) \geq 1 $ for all $i$. 
+  \pause
+  \item $r$ denotes the radius of the ball. 
+  \item $ B_x(s_i, r) = { v \in V : d_x(s_i, v) \leq r} $ denotes the ball of radius of r around $s_i$. 
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{itemize}
+    \item Each edge $e \in E$ is considered as a pipe with length $x_e$ and cross-sectional area $c_e$.
+
+    \item The product $c_e x_e$ gives the volume of edge e.
+
+    \item The LP produces the minimum-volume system of pipes such that $d_x(s_i , t_i ) \geq 1$ for all i. 
+
+    \begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.45\textwidth}
+            \includegraphics[width=\textwidth]{fig_8.4.png}
+            \caption{Pipe system}
+            \label{fig:subfig1}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.45\textwidth}
+            \includegraphics[width=\textwidth]{fig_8.5.png}
+            \caption{Ball inside a pipe system}
+            \label{fig:subfig2}
+        \end{subfigure}
+        \label{fig:main}
+    \end{figure}
+
+
+\end{itemize}
+    
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{itemize}
+  \item $ V^* = \sum_{e \in E } c_e x_e$ denotes the total volume of the pipes.
+
+  \item $ V_x(s_i, r) $ denotes the volume of pipes within distance $r$ of $s_i$. 
+
+
+
+\begin{align*}
+    V_x(s_i, r) = & \frac{V^*}{k} + \sum_{e = (u,v) : u,v \in B_x(s_i, r)}{c_ex_e} \\
+    & + \sum_{e = (u,v) : u \in B_x(s_i, r), v \notin B_x(s_i, r)}{c_e - d_x(s_i, u)} \notag \newline
+\end{align*}
+
+\pause
+\item $\delta(S)$  denotes the set of edges that has exactly one endpoint in the set of vertices S.
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{itemize}
+    \item $ c (\delta(B_x(s_i , r ))) $ denotes the cost of the edges in $\delta(B_x(s_i , r ))$. \newline 
+    That is $ c (\delta(B_x(s_i , r ))) = \sum_{e \in \delta(B_x(s_i , r ))} c_e$ \newline
+
+    \pause
+
+    \item The paper claims that, it is always possible to find some radius $r < \frac{1}{2}$ such that the cost $ c(\delta(B_x(s_i , r ))) $ of the cut induced by the ball of radius r around $s_i$ is not much more than the volume of the ball. \newline
+
+    \item Finding such ball is called as \textit{region growing}. 
+\end{itemize}
+    
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{lemma}[8.7]
+    Given a feasible solution to the linear program x, for any $s_i$ one can find
+in polynomial time a radius  $r < \frac{1}{2}$ such that
+
+\begin{equation*}
+    c(\delta(B_x(s_i , r ))) \leq (2ln(k+1))V_x(s_i, r)
+\end{equation*}
+\end{lemma}
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+  \begin{algorithm}[H]
+    \SetAlgoLined
+
+    Let $x$ be an optimal solution to the LP \\
+    $F \leftarrow \emptyset$ \\
+    
+    \For{$i \leftarrow 1$ \KwTo $k$}{
+      \If{$s_i$ and $t_i$ are connected in $(V, E - F)$}{
+        Choose radius $r < \frac{1}{2}$ around $s_i$ as in Lemma 8.7 \\
+        $F \leftarrow F \cup \delta(B_x(s_i, r))$ \\
+        Remove $B_x(s_i, r)$ and incident edges from the graph
+      }
+    }
+    
+    \Return{$F$}
+    \caption{Algorithm for the multicut problem}
+  \end{algorithm}
+\end{frame}
+
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{lemma}[8.8]
+    The algorithm produces a feasible solution for the multicut problem. 
+\end{lemma}
+
+\vspace{10pt}
+
+\textit{Proof by Contradiction:} 
+The only possible way in which the solution might not be feasible is if we have some $s_j - t_j$ pair in the ball $B_x(s_i , r)$ when the vertices in the ball get removed
+from the graph.\newline
+
+However, if $s_j , t_j \in B_x(s_i , r) $ for $r < \frac{1}{2}$, then $d_x(s_i , s_j ) < \frac{1}{2}$ and
+$d_x(s_i , t_j ) < \frac{1}{2}$ \newline
+
+This means, $d_x (s_j , t_j ) < 1$ which contradicts the feasibility of the LP solution x. 
+    
+\end{frame}
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{theorem}
+    The algorithm is a $4ln(k+1)$ -approximation algorithm for multicut problem. 
+\end{theorem}
+
+\vspace{10pt}
+
+Let $B_i$ be the set of vertices in the ball and $F_i$ be the edges in $\delta(B_i)$ when the pair $s_i - t_i$ are selected for separation .
+
+Let $V_i$ be the total volume of edges removed when the vertices of $B_i$ and its incident edges are removed from the graph.  $V_i \geq V_x(s_i, r) - \frac{v^*}{k} $.
+
+From lemma 8.7, we also get, $c(F_i) \leq (2 \ln(k + 1)) V_x(s_i, r) \leq (2 \ln(k + 1))( V_i + \frac{v^*}{k} )$.
+
+\end{frame}
+
+\begin{frame}{LP Rounding Algorithm}
+
+\begin{theorem}
+    The algorithm is a $4ln(k+1)$ -approximation algorithm for multicut problem. 
+\end{theorem}
+
+\vspace{10pt}
+
+Each volume of edge belongs to at most one $V_i$, once the edge is removed it can't be part of another volume in later itteration. 
+
+\begin{align*}
+    \sum_{e \in F} c_e = & \sum_{i=1}^k \sum_{e \in F_1} c_e \leq (2 \ln(k + 1)) \sum_{i=1}^k( V_i + \frac{v^*}{k} ) \\
+    & \leq (4 \ln(k + 1)) V^* \leq (4 \ln(k + 1)) OPT
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{References}
+    \printbibliography[heading=bibintoc,title={Whole bibliography}]
 \end{frame}
 
 
